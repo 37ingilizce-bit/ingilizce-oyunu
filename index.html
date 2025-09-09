@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eşleştirme Oyunu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 95%;
+            width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .question-number {
+            background: #ff6b35;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+
+        .game-area {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border: 3px solid #e9ecef;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .option {
+            background: white;
+            border: 3px solid #dee2e6;
+            border-radius: 25px;
+            padding: 15px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .option:hover {
+            border-color: #007bff;
+            background: #e3f2fd;
+            transform: translateY(-2px);
+        }
+
+        .option.selected {
+            background: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+
+        .option.matched {
+            background: #6c757d;
+            color: #adb5bd;
+            border-color: #6c757d;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .characters {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .character {
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .character:hover {
+            transform: scale(1.05);
+        }
+
+        .character-number {
+            background: #6c757d;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            font-size: 14px;
+            z-index: 20;
+        }
+
+        .character-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 15px;
+            border: 4px solid #dee2e6;
+            object-fit: contain;
+            object-position: center;
+            transition: all 0.3s ease;
+            display: block;
+            box-sizing: border-box;
+            background: white;
+        }
+
+        .character.matched .character-image {
+            border-color: #28a745;
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
+        }
+
+        .character.selected .character-image {
+            border-color: #007bff;
+            box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
+        }
+
+        .zoom-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 25px;
+            height: 25px;
+            background: rgba(0, 123, 255, 0.9);
+            border: 2px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 12px;
+            z-index: 15;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(0, 123, 255, 1);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background: #dc3545;
+        }
+
+        .btn-reset:hover {
+            background: #c82333;
+        }
+
+        .score {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #495057;
+            margin-top: 20px;
+        }
+
+        /* Modal için stiller */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            position: relative;
+            margin: 5% auto;
+            max-width: 80%;
+            max-height: 80%;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: auto;
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: 10px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            color: #aaa;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-title {
+            text-align: center;
+            margin: 15px 0 10px 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .options {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(3, 1fr);
+                gap: 10px;
+            }
+            
+            .option {
+                font-size: 12px;
+                padding: 8px 4px;
+            }
+            
+            .characters {
+                flex-direction: column;
+            }
+            
+            .character-image {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="question-number">7-1</div>
+            <h1 class="title">Appearance and Personality - Match the words withe the pictures.</h1>
+        </div>
+
+        <div class="game-area">
+            <div class="options">
+                <div class="option" data-answer="old">a. old</div>
+                <div class="option" data-answer="medium-aged">b. medium-aged</div>
+                <div class="option" data-answer="beautiful">c. beautiful</div>
+                <div class="option" data-answer="well-built">d. well-built</div>
+                <div class="option" data-answer="young">e. young</div>
+            </div>
+
+            <div class="characters">
+                <div class="character" data-character="1">
+                    <div class="character-number">1</div>
+                    <img src="1.jpg" alt="Character 1" class="character-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPjEuanBnPC90ZXh0Pjwvc3ZnPg=='">
+                    <div class="zoom-btn" onclick="event.stopPropagation(); openModal('1', '1.jpg')">🔍</div>
+                </div>
+                
+                <div class="character" data-character="2">
+                    <div class="character-number">2</div>
+                    <img src="2.jpg" alt="Character 2" class="character-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPjIuanBnPC90ZXh0Pjwvc3ZnPg=='">
+                    <div class="zoom-btn" onclick="event.stopPropagation(); openModal('2', '2.jpg')">🔍</div>
+                </div>
+                
+                <div class="character" data-character="3">
+                    <div class="character-number">3</div>
+                    <img src="3.jpg" alt="Character 3" class="character-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPjMuanBnPC90ZXh0Pjwvc3ZnPg=='">
+                    <div class="zoom-btn" onclick="event.stopPropagation(); openModal('3', '3.jpg')">🔍</div>
+                </div>
+                
+                <div class="character" data-character="4">
+                    <div class="character-number">4</div>
+                    <img src="4.jpg" alt="Character 4" class="character-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPjQuanBnPC90ZXh0Pjwvc3ZnPg=='">
+                    <div class="zoom-btn" onclick="event.stopPropagation(); openModal('4', '4.jpg')">🔍</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="checkAnswers()">Cevapları Kontrol Et</button>
+            <button class="btn btn-reset" onclick="resetGame()">Sıfırla</button>
+        </div>
+
+        <div class="score" id="score">Skor: 0/4</div>
+    </div>
+
+    <!-- Modal için HTML -->
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 class="modal-title" id="modalTitle">Karakter</h3>
+            <img id="modalImage" src="" alt="Büyütülmüş Resim" class="modal-image">
+        </div>
+    </div>
+
+    <script>
+        let selectedOption = null;
+        let matches = {};
+        let score = 0;
+
+        // Doğru eşleştirmeler
+        const correctMatches = {
+            '1': 'beautiful',      
+            '2': 'young',    
+            '3': 'well-built', 
+            '4': 'old'     
+        };
+
+        // Seçenek tıklama olayları
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Mat kelimeleri seçilemesin
+                if (this.classList.contains('matched')) {
+                    return;
+                }
+                
+                // Önceki seçimi temizle
+                document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+                
+                // Yeni seçimi işaretle
+                this.classList.add('selected');
+                selectedOption = this.dataset.answer;
+            });
+        });
+
+        // Karakter tıklama olayları
+        document.querySelectorAll('.character').forEach(character => {
+            character.addEventListener('click', function(e) {
+                // Büyüteç butonuna tıklandıysa durdurun
+                if (e.target.classList.contains('zoom-btn')) {
+                    return;
+                }
+                
+                // Eşleştirme mantığı
+                if (selectedOption) {
+                    const characterId = this.dataset.character;
+                    
+                    // Eşleştirmeyi kaydet
+                    matches[characterId] = selectedOption;
+                    
+                    // Karakter görsel geri bildirimi
+                    this.classList.add('selected');
+                    
+                    // Seçili kelimeyi mat hale getir
+                    const selectedOptionElement = document.querySelector(`[data-answer="${selectedOption}"]`);
+                    if (selectedOptionElement) {
+                        selectedOptionElement.classList.remove('selected');
+                        selectedOptionElement.classList.add('matched');
+                    }
+                    
+                    // Seçimi temizle
+                    selectedOption = null;
+                    
+                    console.log('Eşleştirme yapıldı:', characterId, matches[characterId]);
+                }
+            });
+        });
+
+        // Modal fonksiyonları
+        function openModal(characterId, imageSrc) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            modalImage.src = imageSrc;
+            modalTitle.textContent = `Karakter ${characterId}`;
+            modal.style.display = 'block';
+            
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Modal kapatma olayları
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.close').addEventListener('click', closeModal);
+            
+            document.getElementById('imageModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+        });
+
+        // ESC tuşu ile modal kapatma
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        function checkAnswers() {
+            score = 0;
+            
+            Object.keys(matches).forEach(characterId => {
+                const character = document.querySelector(`[data-character="${characterId}"]`);
+                const userAnswer = matches[characterId];
+                const correctAnswer = correctMatches[characterId];
+                
+                if (userAnswer === correctAnswer) {
+                    character.classList.add('matched');
+                    character.classList.remove('selected');
+                    score++;
+                } else {
+                    character.style.border = '4px solid #dc3545';
+                    setTimeout(() => {
+                        character.querySelector('.character-image').style.border = '4px solid #dee2e6';
+                    }, 2000);
+                }
+            });
+            
+            document.getElementById('score').textContent = `Skor: ${score}/4`;
+            
+            if (score === 4) {
+                setTimeout(() => {
+                    alert('Tebrikler! Tüm eşleştirmeleri doğru yaptınız! 🎉');
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    alert(`${score}/4 doğru eşleştirme. Tekrar deneyin!`);
+                }, 500);
+            }
+        }
+
+        function resetGame() {
+            matches = {};
+            score = 0;
+            selectedOption = null;
+            
+            document.querySelectorAll('.character').forEach(character => {
+                character.classList.remove('matched', 'selected');
+                character.querySelector('.character-image').style.border = '4px solid #dee2e6';
+            });
+            
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected', 'matched');
+            });
+            
+            document.getElementById('score').textContent = 'Skor: 0/4';
+        }
+    </script>
+</body>
+</html>
